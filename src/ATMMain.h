@@ -3,6 +3,7 @@
 #include "ATMController.h"
 #include "ATMInterface.h"
 #include "BankInterface.h"
+#include "Customer.h"
 
 #include <string>
 #include <vector>
@@ -23,9 +24,10 @@ public:
 
     void addBank(BankInterface* bank);
 
-    int checkCard(std::string& cardId, int password);
-    int checkBalance(int bank, std::string& cardId, int password, ATMMessage& ret);
-    int deposit(int bank, std::string& cardId, int password, int amount, ATMMessage& ret);
-    int withdraw(int bank, std::string& cardId, int password, int amount, ATMMessage& ret);
+    int checkCard(const std::string& cardId, const int password);
+    std::vector<Acount> getAccount(const int bank, const std::string& cardId, const int password, ATMMessage& ret);
+    int checkBalance(const int bank, const std::string& cardId, const int password, const int account, ATMMessage& ret);
+    int deposit(const int bank, const std::string& cardId, const int password, const int amount, const int account, ATMMessage& ret);
+    int withdraw(const int bank, const std::string& cardId, const int password, const int amount, const int account, ATMMessage& ret);
 
 };

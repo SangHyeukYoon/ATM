@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ATMMessage.h"
+#include "Customer.h"
 
 #include <string>
 
@@ -12,6 +13,7 @@ public:
     virtual int insertCard(std::string& cardId) = 0;
     virtual void insertCardRet(ATMMessage result) = 0;
 
+    virtual int selectAccount(std::vector<Acount> accounts) = 0;
     virtual int selectMenu() = 0;
     virtual void checkBalance(int balance) = 0;
 

@@ -2,6 +2,7 @@
 
 #include "ATMInterface.h"
 #include "ATMMessage.h"
+#include "Customer.h"
 
 #include <string>
 
@@ -12,6 +13,8 @@ public:
 
     int insertCard(std::string& cardId);
     void insertCardRet(ATMMessage result);
+
+    int selectAccount(std::vector<Acount> accounts);
     int selectMenu();
     void checkBalance(int balance);
 

@@ -4,8 +4,8 @@ CFLAGS=-std=c++17
 DIR=src/
 TEST_DIR=test/
 
-GTEST_LIB_DIR=/home/yoon/develope/googletest/build/lib/
-GTEST_INC_DIR=/home/yoon/develope/googletest/googletest/include/
+GTEST_LIB_DIR=/home/yoon/develope/gtest/googletest/build/lib
+GTEST_INC_DIR=/home/yoon/develope/gtest/googletest/googletest/include
 
 OBJS=$(DIR)main.o $(DIR)ATMcui.o $(DIR)BankA.o $(DIR)ATMMain.o
 OBJS_TEST=$(TEST_DIR)atm_test.o $(DIR)ATMcui.o $(DIR)BankA.o $(DIR)ATMMain.o

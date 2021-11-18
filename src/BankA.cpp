@@ -1,4 +1,5 @@
 #include "BankA.h"
+#include "Customer.h"
 
 #include <string>
 #include <vector>
@@ -9,7 +10,7 @@ void BankA::addCustomer(Customer customer)
     customers.push_back(customer);
 }
 
-bool BankA::checkCard(std::string& cardId, int password)
+bool BankA::checkCard(const std::string& cardId, const int password)
 {
     if (bankId.compare(cardId.substr(0, 4)) != 0)
     {
@@ -27,54 +28,85 @@ bool BankA::checkCard(std::string& cardId, int password)
     return false;
 }
 
-int BankA::checkBalance(std::string& cardId, int password)
+std::vector<Acount> BankA::getAccount(const std::string& cardId, const int password)
 {
     for (auto it = customers.begin(); it < customers.end(); ++it)
     {
         if (it->cardId.compare(cardId) == 0 && it->password == password)
         {
-            return it->balance;
+            return it->accounts;
+        }
+    }
+
+    return std::vector<Acount>();
+}
+
+int BankA::checkBalance(const std::string& cardId, const int password, const int account)
+{
+    // find customer, i know it is inefficient. 
+    for (auto it = customers.begin(); it < customers.end(); ++it)
+    {
+        // find customer
+        if (it->cardId.compare(cardId) == 0 && it->password == password)
+        {
+            // check account validation
+            if (account < it->accounts.size())
+                return it->accounts[account].balance;
         }
     }
 
     return -1;
 }
 
-int BankA::deposit(std::string& cardId, int password, int amount, BankMessage& ret)
+int BankA::deposit(const std::string& cardId, const int password, const int amount, const int account, BankMessage& ret)
 {
+    // find customer, i know it is inefficient. 
     for (auto it = customers.begin(); it < customers.end(); ++it)
     {
+        // find customer
         if (it->cardId.compare(cardId) == 0 && it->password == password)
         {
-            ret = BankMessage::Success;
-            it->balance += amount;
-            return it->balance;
+            // check amount and account validation
+            if (amount >= 0 && account < it->accounts.size())
+            {
+                ret = BankMessage::Success;
+                it->accounts[account].balance += amount;
+                return it->accounts[account].balance;
+            }
         }
     }
 
+    // May be it is unkwown customer or unknown error.
     ret = BankMessage::UnknownCustomer;
 
     return -1;
 }
 
-int BankA::withdraw(std::string& cardId, int password, int amount, BankMessage& ret)
+int BankA::withdraw(const std::string& cardId, const int password, const int amount, const int account, BankMessage& ret)
 {
+    // find customer, i know it is inefficient. 
     for (auto it = customers.begin(); it < customers.end(); ++it)
     {
+        // find customer
         if (it->cardId.compare(cardId) == 0 && it->password == password)
         {
-            if (it->balance < amount)
+            // check amount and account validation
+            if (amount >= 0 && account < it->accounts.size())
             {
-                ret = BankMessage::LackBalance;
-                return it->balance;
-            }
+                if (it->accounts[account].balance < amount)
+                {
+                    ret = BankMessage::LackBalance;
+                    return it->accounts[account].balance;
+                }
 
-            ret = BankMessage::Success;
-            it->balance -= amount;
-            return it->balance;
+                ret = BankMessage::Success;
+                it->accounts[account].balance -= amount;
+                return it->accounts[account].balance;
+            }
         }
     }
 
+    // May be it is unkwown customer or unknown error.
     ret = BankMessage::UnknownCustomer;
 
     return -1;

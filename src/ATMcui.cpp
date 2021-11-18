@@ -1,4 +1,5 @@
 #include "ATMcui.h"
+#include "Customer.h"
 
 #include <string>
 #include <iostream>
@@ -38,6 +39,28 @@ void ATMcui::insertCardRet(ATMMessage result)
     {
         throw std::exception();
     }
+}
+
+int ATMcui::selectAccount(std::vector<Acount> accounts)
+{
+    std::cout << "Please select account." << std::endl << std::endl;
+
+    for (auto it = accounts.begin(); it < accounts.end(); ++it)
+    {
+        std::cout << "Number: " << it->accountNum << std::endl;
+        std::cout << "Name: " << it->name << std::endl << std::endl;
+    }
+
+    int num = -1;
+
+    while (num < 0 || num > accounts.size() - 1)
+    {
+        std::cout << "Please enter the account number." << std::endl;
+        std::cin >> num;
+        std::cout << std::endl;
+    }
+
+    return num;
 }
 
 int ATMcui::selectMenu()

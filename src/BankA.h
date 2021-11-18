@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BankInterface.h"
+#include "Customer.h"
 
 #include <string>
 #include <vector>
@@ -20,9 +21,10 @@ public:
 
     void addCustomer(Customer customer);
 
-    bool checkCard(std::string& cardId, int password);
-    int checkBalance(std::string& cardId, int password);
-    int deposit(std::string& cardId, int password, int amount, BankMessage& ret);
-    int withdraw(std::string& cardId, int password, int amount, BankMessage& ret);
+    bool checkCard(const std::string& cardId, const int password);
+    std::vector<Acount> getAccount(const std::string& cardId, const int password);
+    int checkBalance(const std::string& cardId, const int password, const int account);
+    int deposit(const std::string& cardId, const int password, const int amount, const int account, BankMessage& ret);
+    int withdraw(const std::string& cardId, const int password, const int amount, const int account, BankMessage& ret);
 
 };

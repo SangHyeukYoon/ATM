@@ -3,6 +3,7 @@
 #include "BankInterface.h"
 #include "ATMMessage.h"
 #include "BankMessage.h"
+#include "Customer.h"
 
 #include <string>
 #include <vector>
@@ -14,6 +15,7 @@ void ATMMain::start()
         // Insert Card
         std::string cardId;
         int password, bank;
+        ATMMessage ret;
 
         password = ux->insertCard(cardId);
 
@@ -25,18 +27,28 @@ void ATMMain::start()
 
         ux->insertCardRet(ATMMessage::Success);
 
+        // Select account
+        std::vector<Acount> accounts = getAccount(bank, cardId, password, ret);
+
+        if (ret == ATMMessage::UnknownCustommer)
+        {
+            continue;
+        }
+
+        int account = ux->selectAccount(accounts);
+
         // check menu
         int menu = -1;
         int balance;
-        ATMMessage ret;
 
         while (menu != 4)
         {
             menu = ux->selectMenu();
 
+            // check balance
             if (menu == 1)
             {
-                balance = checkBalance(bank, cardId, password, ret);
+                balance = checkBalance(bank, cardId, password, account, ret);
 
                 // Unknown error 
                 if (balance == -1)
@@ -46,16 +58,18 @@ void ATMMain::start()
 
                 ux->checkBalance(balance);
             }
+            // deposit
             else if (menu == 2)
             {
                 int amount = ux->deposit();
-                balance = deposit(bank, cardId, password, amount, ret);
+                balance = deposit(bank, cardId, password, amount, account, ret);
                 ux->depositRet(ret, balance);
             }
+            // withdraw
             else if (menu == 3)
             {
                 int amount = ux->withdraw();
-                balance = withdraw(bank, cardId, password, amount, ret);
+                balance = withdraw(bank, cardId, password, amount, account, ret);
                 ux->withdrawRet(ret, balance);
             }
         }
@@ -67,8 +81,9 @@ void ATMMain::addBank(BankInterface* bank)
     banks.push_back(bank);
 }
 
-int ATMMain::checkCard(std::string& cardId, int password)
+int ATMMain::checkCard(const std::string& cardId, const int password)
 {
+    // find user through registered banks.
     for (auto it = banks.begin(); it < banks.end(); ++it)
     {
         if ((*it)->checkCard(cardId, password))
@@ -80,26 +95,60 @@ int ATMMain::checkCard(std::string& cardId, int password)
     return -1;
 }
 
-int ATMMain::checkBalance(int bank, std::string& cardId, int password, ATMMessage& ret)
+std::vector<Acount> ATMMain::getAccount(const int bank, const std::string& cardId, const int password, ATMMessage& ret)
 {
+    // bank value validation
     if (bank < 0 || bank > banks.size())
     {
         ret = ATMMessage::UnknownCustommer;
-        return -1;
+        return std::vector<Acount>();
+    }
+
+    // get account
+    std::vector<Acount> accounts = banks[bank]->getAccount(cardId, password);
+
+    // if accounts are empty, something is wrong. 
+    if (accounts.empty())
+    {
+        ret = ATMMessage::UnknownCustommer;
+        return std::vector<Acount>();
     }
 
     ret = ATMMessage::Success;
-    return banks[bank]->checkBalance(cardId, password);
+    return accounts;
 }
 
-int ATMMain::deposit(int bank, std::string& cardId, int password, int amount, ATMMessage& ret)
+int ATMMain::checkBalance(const int bank, const std::string& cardId, const int password, const int account, ATMMessage& ret)
 {
+    // bank value validation
     if (bank < 0 || bank > banks.size())
     {
         ret = ATMMessage::UnknownCustommer;
         return -1;
     }
 
+    int balance = banks[bank]->checkBalance(cardId, password, account);
+
+    if (balance != -1)
+    {
+        ret = ATMMessage::Success;
+        return balance;
+    }
+
+    ret = ATMMessage::UnknownCustommer;
+    return -1;
+}
+
+int ATMMain::deposit(const int bank, const std::string& cardId, const int password, const int amount, const int account, ATMMessage& ret)
+{
+    // bank value validation
+    if (bank < 0 || bank > banks.size())
+    {
+        ret = ATMMessage::UnknownCustommer;
+        return -1;
+    }
+
+    // amount value validation
     if (amount < 0)
     {
         ret = ATMMessage::InvalidNumber;
@@ -107,7 +156,7 @@ int ATMMain::deposit(int bank, std::string& cardId, int password, int amount, AT
     }
 
     BankMessage mes;
-    int balance = banks[bank]->deposit(cardId, password, amount, mes);
+    int balance = banks[bank]->deposit(cardId, password, amount, account, mes);
 
     if (mes == BankMessage::Success)
     {
@@ -120,19 +169,22 @@ int ATMMain::deposit(int bank, std::string& cardId, int password, int amount, AT
     return -1;
 }
 
-int ATMMain::withdraw(int bank, std::string& cardId, int password, int amount, ATMMessage& ret)
+int ATMMain::withdraw(const int bank, const std::string& cardId, const int password, const int amount, const int account, ATMMessage& ret)
 {
+    // bank value validation
     if (bank < 0 || bank > banks.size())
     {
         return -1;
     }
 
+    // amount value validation
     if (amount < 0)
     {
         ret = ATMMessage::InvalidNumber;
         return -1;
     }
 
+    // check ATM cache bin
     if (amount > cache)
     {
         ret = ATMMessage::LackCache;
@@ -140,7 +192,7 @@ int ATMMain::withdraw(int bank, std::string& cardId, int password, int amount, A
     }
 
     BankMessage mes;
-    int balance = banks[bank]->withdraw(cardId, password, amount, mes);
+    int balance = banks[bank]->withdraw(cardId, password, amount, account, mes);
 
     if (mes == BankMessage::Success)
     {
@@ -148,6 +200,7 @@ int ATMMain::withdraw(int bank, std::string& cardId, int password, int amount, A
         cache -= amount;
         return balance;
     }
+    // user's balance is less then amount
     else if (mes == BankMessage::LackBalance)
     {
         ret = ATMMessage::LackBalance;
