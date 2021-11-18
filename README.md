@@ -2,9 +2,12 @@
 
 ## make
 
+<pre>
 <code>
+make clean
 make
 </code>
+</pre>
 
 ## test
 use google test  
@@ -20,6 +23,7 @@ GTEST_INC_DIR=/home/yoon/develope/googletest/googletest/include/
 and make test
 <pre>
 <code>
+make clean
 make test
 </code>
 </pre>
